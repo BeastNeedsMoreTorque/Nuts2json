@@ -1,61 +1,128 @@
 # Nuts2json
 
-<a href="https://github.com/jgaffuri/Nuts2json">Nuts2json</a> provides various reusable versions of <a href="http://ec.europa.eu/eurostat/web/nuts/overview" target="_blank">Eurostat NUTS dataset</a> as web formats such as <a href="http://geojson.org/" target="_blank">GeoJSON</a> and <a href="https://github.com/mbostock/topojson/wiki" target="_blank">TopoJSON</a>. It supports the design of statistical web maps of <a href="http://ec.europa.eu/eurostat/web/json-and-unicode-web-services/getting-started/rest-request" target="_blank">Eurostat data</a>. In a way, it provides a blank map of geometries ready for use with your own data and colors.
+[Nuts2json](https://github.com/eurostat/Nuts2json) provides various reusable versions of [Eurostat NUTS dataset](http://ec.europa.eu/eurostat/web/nuts/overview) as web formats such as [TopoJSON](https://github.com/mbostock/topojson/wiki) and [GeoJSON](http://geojson.org/). It is provided to support the development of statistical web maps of [Eurostat data](http://ec.europa.eu/eurostat/) based on NUTS regions. In a way, it provides a blank map of geometries ready for use with your own data and colors.
 
-For an example of such blank map, see <a href="http://jgaffuri.github.io/Nuts2json/overview.html?proj=laea&lvl=3&s=1000" target="_blank"><b>HERE</b></a> (the URL parameters can be changed).
+Examples: For an example of such blank map, see [this map](http://eurostat.github.io/Nuts2json/examples/overview.html?proj=3035&lvl=3&w=1000&s=20M&y=2016). For an example of statistical map, see [this map](http://eurostat.github.io/EurostatVisu/population_map.html?proj=3035&lvl=3&w=1000&s=20M&time=2016) showing population in Europe.
 
-For an example of thematic map, see <a href="http://jgaffuri.github.io/EurostatVisu/population_map.html"><b>this map</b></a> showing population in Europe.
+[![Example](img/ex_population.png)](http://eurostat.github.io/EurostatVisu/population_map.html?proj=3035&lvl=3&w=1000&s=20M&time=2016)
 
+## API
 
-## Supported formats
+The files can be retrieved on-the-fly from the base URL `https://raw.githubusercontent.com/eurostat/Nuts2json/gh-pages/` according to one of these file patterns:
 
-The JSON files are available in the folder <a href="/json" target="_blank">json</a> according to a predefined path pattern. For example, <a href="https://jgaffuri.github.io/Nuts2json/json/topojson/wm/600px/NUTS_lvl2.json" target="_blank">json/topojson/wm/600px/NUTS_lvl2.json</a> is the path to a TopoJSON file of NUTS regions level 2 in projection web mercator, for a map size 600*600px.
+- For TopoJSON format: `/<YEAR>/<PROJECTION>/<SCALE>/<NUTS_LEVEL>.json`
+- For GeoJSON format: `/<YEAR>/<PROJECTION>/<SCALE>/<TYPE>[_<NUTS_LEVEL>].json`
 
-The file path pattern is: <i>/json/\<FORMAT\>/\<PROJECTION\>/\<SIZE\>/\NUTS_lvl\<NUTS_LEVEL\>.json</i>
+For example, [`https://raw.githubusercontent.com/eurostat/Nuts2json/gh-pages/2016/3035/20M/2.json`](https://raw.githubusercontent.com/eurostat/Nuts2json/gh-pages/2016/3035/20M/2.json)</a> returns a TopoJSON file of 2016 NUTS regions level 2 in European LAEA projection ([EPSG 3035](http://spatialreference.org/ref/epsg/etrs89-etrs-laea/)) at 1:20M scale.
 
-where:
+The parameters are:
 
-- <i>FORMAT</i> is the file format. Currently, only <a href="https://github.com/mbostock/topojson/wiki" target="_blank">TopoJSON</a> is provided. <a href="http://geojson.org/" target="_blank">GeoJSON</a> format is to come.
-- <i>PROJECTION</i> is the map projection. Currently, European projection LAEA (<a href="http://spatialreference.org/ref/epsg/etrs89-etrs-laea/" target="_blank">EPSG 3035</a>) and Web Mercator (<a href="http://spatialreference.org/ref/sr-org/7483/" target="_blank">EPSG 3857</a>) are provided.
-- <i>SIZE</i> is the size of the map, in pixel. Currently, all maps are squared. The available sizes are 400, 600, 800, 1000 and 1200 pixels.
-- <i>NUTS_LEVEL</i> is the NUTS level to be shown on the map, from national level (NUTS_LEVEL=0) to provincial level (NUTS_LEVEL=3).
+| Parameter | Supported values | Description |
+| ------------- | ------------- |-------------|
+| `YEAR` | `2016` `2013` `2010` | The NUTS version. |
+| `PROJECTION` | `3035` `3857` `4258` | The coordinate reference system EPSG code. Two projections are provided: European LAEA projection ([EPSG 3035](http://spatialreference.org/ref/epsg/etrs89-etrs-laea/)) and web mercator ([EPSG 3857](http://spatialreference.org/ref/sr-org/7483/)). For statistical maps, it is strongly adviced to use an equal-area projection such as `3035`. Geographic coordinates ETRS89 ([EPSG 4258](http://spatialreference.org/ref/epsg/4258/)) are provided. |
+| `SCALE` | `60M` `20M` `10M` | The intended map scale factor. The larger the value, the stronger the simplification. For example, for a map width of 1000 pixels the scale 1:20M is the most suitable. |
+| `NUTS_LEVEL` | `0` `1` `2` `3` | The NUTS level to be displayed on the map, from national (NUTS_LEVEL=`0`) to local level (NUTS_LEVEL=`3`). |
+| `TYPE` | `nutsrg` `nutsbn` `cntrg` `cntbn` `gra` | For GeoJSON format, the feature type has to be specified. The available feature types are described below. For NUTS feature types (`nutsrg` and `nutsbn`), the `NUTS_LEVEL` to be displayed on the map has to be specified.  |
 
-### Features
+For additional projections, formats, scales, etc., feel free to [ask](https://github.com/eurostat/Nuts2json/issues/new) !
 
-Each file provides 4 feature types with the following properties:
+### Feature types
 
-NUTS regions (feature type <i>nutsrg</i>) have two properties:
-  - <i>id</i>: The NUTS identifier to be used to join Eurostat statistical figures and then assign colors to the regions.
-  - <i>na</i>: The geographical name of the region.
+Five feature types are provided:
 
-NUTS boundaries (feature type <i>nutsbn</i>) have the following properties:
-  - <i>lvl</i>: The NUTS level of the boundary, from 0 (national level) to 3 (provincial level).
-  - <i>eu</i>: T if the boundary separate two EU member states, F otherwise.
-  - <i>efta</i>: T if the boundary touches at least one EFTA country, F otherwise.
-  - <i>cc</i>: T if the boundary touches at least one Candidate Country, F otherwise.
-  - <i>oth</i>: T if the boundary touches a country wich is not EU, EFTA,CC. F otherwise.
-<u>NB:</u> The coastal boundaries are not included.
+- NUTS regions (feature type `nutsrg`) with the following properties:
+  - `id`: The NUTS identifier to be used to join Eurostat statistical figures and then assign colors to the regions.
+  - `na`: The geographical name of the region.
 
-Non-european countries (feature type <i>cntrg</i>)
-  - <i>cid</i>: The country identifier (2 letters code).
-  - <i>cna</i>: The country name.
+- NUTS boundaries (feature type `nutsbn`) with the following properties:
+  - `lvl`: The NUTS level of the boundary, from 0 (national level) to 3 (provincial level).
+  - `eu`: T if the boundary separate two EU member states, F otherwise.
+  - `efta`: T if the boundary touches at least one EFTA country, F otherwise.
+  - `cc`: T if the boundary touches at least one Candidate Country, F otherwise.
+  - `oth`: T if the boundary touches a country wich is not EU, EFTA,CC. F otherwise.
+  - `co`: T if the boundary is coastal. F otherwise.
 
-Non-european boundaries (feature type <i>cntbn</i>). Coastal boundaries are not included.
+- Non-european countries (feature type `cntrg`) with the following properties:
+  - `id`: The country identifier (2 letters code).
+  - `na`: The country name.
+
+- Non-european boundaries (feature type `cntbn`) with a single property:
+  - `co`: T if the boundary is coastal. F otherwise.
+
+- The map graticule (meridian and parrallel lines) is provided as feature type `gra` with a single `id` property:
 
 ## Usage example
 
-See <a href="http://jgaffuri.github.io/EurostatVisu/population_map.html">this map</a> on <a href="https://github.com/jgaffuri/EurostatVisu/blob/gh-pages/README.md">EurostatVisu</a> project.
+A map showing the TopoJSON geometries with [d3js](https://d3js.org/):
 
-[TODO: describe simple examples, based on d3.]
+(See it online [here](https://eurostat.github.io/Nuts2json/examples/usage.html)).
+
+```html
+<!DOCTYPE html>
+<svg></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/topojson.v1.min.js"></script>
+<script>
+d3.json("https://raw.githubusercontent.com/eurostat/Nuts2json/gh-pages/2016/3035/20M/3.json",
+		function(error, nuts) {
+	if (error) throw error;
+
+	//prepare SVG element
+	var width = 1000, height = width*(nuts.bbox[3]-nuts.bbox[1])/(nuts.bbox[2]-nuts.bbox[0]),
+		svg = d3.select("svg").attr("width", width).attr("height", height)
+		path = d3.geoPath().projection(d3.geoIdentity()
+			.reflectY(true).fitSize([width,height], topojson.feature(nuts, nuts.objects.gra)));
+
+	//draw graticule
+	svg.append("g").selectAll("path").data(topojson.feature(nuts, nuts.objects.gra).features).enter()
+		.append("path").attr("d", path)
+		.style("fill","none").style("stroke-width","2px").style("stroke","lightgray");
+
+	//draw country regions
+	svg.append("g").selectAll("path").data(topojson.feature(nuts, nuts.objects.cntrg).features).enter()
+		.append("path").attr("d", path)
+		.style("fill","lightgray")
+		.on("mouseover", function() { d3.select(this).style("fill", "darkgray");  })
+		.on("mouseout",  function() { d3.select(this).style("fill", "lightgray"); });
+
+	//draw nuts regions
+	svg.append("g").selectAll("path").data(topojson.feature(nuts, nuts.objects.nutsrg).features).enter()
+		.append("path").attr("d", path)
+		.style("fill","#fdbf6f")
+		.on("mouseover", function() { d3.select(this).style("fill", "#ff7f00"); })
+		.on("mouseout",  function() { d3.select(this).style("fill", "#fdbf6f"); });
+
+	console.log(nuts.objects.cntbn);
+
+	//draw country boundaries
+	svg.append("g").selectAll("path").data(topojson.feature(nuts, nuts.objects.cntbn).features).enter()
+		.append("path").attr("d", path)
+		.style("fill","none").style("stroke-width","1px")
+		.style("stroke",function(bn){ if(bn.properties.co==="T") return "#1f78b4"; return "white"; });
+
+	//draw nuts boundaries
+	svg.append("g").selectAll("path").data(topojson.feature(nuts, nuts.objects.nutsbn).features).enter()
+		.append("path").attr("d", path)
+		.style("fill","none")
+		.style("stroke",function(bn){
+			if(bn.properties.co==="T") return "#1f78b4";
+			if(bn.properties.oth==="T" || bn.properties.lvl==0) return "white"; return "#333"; })
+		.style("stroke-width",function(bn){ if(bn.properties.lvl==3) return "0.5px"; return "1px"; });
+});
+</script>
+```
+
+For a map showing a choropleth map based on [Eurostat statistical data API](http://ec.europa.eu/eurostat/web/json-and-unicode-web-services/getting-started/rest-request), see [this map](http://eurostat.github.io/EurostatVisu/population_map.html) on [EurostatVisu repo](https://github.com/eurostat/EurostatVisu/blob/gh-pages/population_map.html).
 
 ## Technical details
 
-These files are produced from the NUTS SHP files provided on Eurostat website, <a href="http://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts" target="_blank">here</a>. The input SHP files are in the <a href="/shp" target="_blank">shp folder</a>. They are transformed using <a href="http://www.gdal.org/" target="_blank">GDAL</a> and, of course, <a href="https://github.com/mbostock/topojson/wiki" target="_blank">TopoJSON</a> libraries. The processes are automated in Bash files, which are also shared in this repository.
+These files are produced from the NUTS SHP files provided on [Eurostat-GISCO website](http://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts). The input SHP files are in the [shp folder](/shp). These input files are transformed using [GDAL](http://www.gdal.org/) and [TopoJSON](https://github.com/mbostock/topojson/wiki). The processes are automated in bash files, which are also shared in this repository.
 
 ## Support and contribution
 
-Feel free to [ask support](https://github.com/jgaffuri/Nuts2json/issues/new), fork the project or simply star it (it's always a pleasure).
+Feel free to [ask support](https://github.com/eurostat/Nuts2json/issues/new), fork the project or simply star it (it's always a pleasure).
 
 ## Copyright
 
-The <a href="http://ec.europa.eu/eurostat/web/nuts/overview" target="_blank">Eurostat NUTS dataset</a> is copyrighted. See the <a href="http://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts" target="_blank">Eurostat-GISCO</a> website for more information.
+The [Eurostat NUTS dataset](http://ec.europa.eu/eurostat/web/nuts/overview) is copyrighted. See the [Eurostat-GISCO website](http://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts) for more information.
